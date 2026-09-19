@@ -89,3 +89,8 @@
 - 补 3 处：postinst 提示文案同步显示名；构建期新增「版本三处一致」断言
   （.lang version 渲染值 + control.in 占位符行）与图标 viewBox 断言（check_assets）
 - 清理 assets 残留 .DS_Store；-3 产物 sha256 93bd3f4e…（NAS: /tmp/navidrome-3.deb）
+
+## v0.64.0-4 元数据修正
+
+- .lang auth（开发者）：Moechz → deluan（上游作者；publisher 发布人仍为 Moechz）
+- config.ini help / official 均改为 https://forum.terra-master.com/en/viewtopic.php?t=10594
