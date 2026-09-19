@@ -1,0 +1,41 @@
+[Unit]
+Description=Navidrome Music Server (personal streaming service)
+Documentation=https://www.navidrome.org/docs/overview
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+User=navidrome
+Group=navidrome
+WorkingDirectory=/usr/local/navidrome
+EnvironmentFile=-/usr/local/navidrome/navidrome.env
+# ExecStart 参数全部写死，绝无 $ 变量展开（systemd 只支持基本 ${VAR}，
+# 不支持 shell 风格默认值，曾致全环境 502）。
+# 安全兜底：--address 127.0.0.1 保证仅回环监听（即使 env 文件被误删也不会外泄端口）；
+# --baseurl 与 nginx 路由前缀保持一致（子路径原生工作）。
+# Navidrome 配置优先级：环境变量(ND_*) > 命令行参数 > 配置文件，
+# 因此用户仍可在 /usr/local/navidrome/navidrome.env 中用 ND_* 覆盖以下任何默认值。
+# 修改监听地址/端口/路径：编辑本文件副本 /etc/systemd/system/navidrome.service 后
+#   systemctl daemon-reload && systemctl restart navidrome
+ExecStart=/usr/local/navidrome/bin/navidrome --address 127.0.0.1 --port 8453 --baseurl /navidrome --musicfolder /var/lib/navidrome/music --datafolder /var/lib/navidrome/data --cachefolder /var/lib/navidrome/cache
+TimeoutStartSec=30
+TimeoutStopSec=10
+# 注意：按 TOS 规范不配置 Restart/RestartSec——生命周期由应用中心统一管理
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/navidrome
+LimitNOFILE=65536
+UMask=0027
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+
+[Install]
+WantedBy=multi-user.target

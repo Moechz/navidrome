@@ -1,0 +1,115 @@
+#!/bin/bash
+# postinst - 安装/升级后处理
+# 组件树（/usr/local/navidrome 下的二进制/配置/服务）随 deb 分发，
+# postinst 负责"派生状态"：属主、webui 解压、系统层注册（服务+nginx）、
+# 首装配置引导、启动服务。
+# 注：经 TOS 应用中心安装时平台也会注册 init.d 服务与 nginx 配置，
+# 本脚本的操作全部幂等，两条安装路径行为一致。
+set -e
+
+APP_DIR=/usr/local/navidrome
+APP_USER=navidrome
+DATA_DIR=/var/lib/navidrome
+MAINT_LOG=/var/log/navidrome-maint.log
+
+pkg_log() {
+  mkdir -p /var/log 2>/dev/null || true
+  echo "$(date '+%F %T') $*" >> "$MAINT_LOG" 2>/dev/null || true
+}
+pkg_log postinst "$1" "new=@VERSION@${2:+ old=$2}"
+
+case "$1" in
+  configure)
+    # 1. 用户兜底（preinst 已建；平台自动创建路径亦覆盖）
+    if ! id -u $APP_USER > /dev/null 2>&1; then
+      useradd --system --user-group --no-create-home --shell /usr/sbin/nologin $APP_USER 2>/dev/null || true
+    fi
+
+    # 2. 文件属主（官方 postinst 模板：应用目录归运行用户）
+    chown -R $APP_USER:$APP_USER "$APP_DIR" 2>/dev/null || true
+
+    # 3. 解压 webui.bz2（官方模板行为；External 模式下为占位页）
+    if [ -f "$APP_DIR/webui.bz2" ]; then
+      ( cd "$APP_DIR" && tar -xjf webui.bz2 2>/dev/null || true )
+    fi
+
+    # 4. 配置文件首装引导：仅在不存在时从随包模板复制（升级永不覆盖用户配置）
+    if [ ! -e "$APP_DIR/navidrome.env" ] && [ -e "$APP_DIR/navidrome.env.example" ]; then
+      install -m 0640 -o $APP_USER -g $APP_USER \
+        "$APP_DIR/navidrome.env.example" "$APP_DIR/navidrome.env"
+      pkg_log postinst bootstrap "navidrome.env 首装"
+    fi
+
+    # 5. 数据目录（数据库 / 缓存 / 音乐库；音乐目录空也能正常启动）
+    install -d -o $APP_USER -g $APP_USER -m 0750 \
+      "$DATA_DIR" "$DATA_DIR/data" "$DATA_DIR/cache" "$DATA_DIR/music"
+
+    # 5.5 上游官方 deb 迁移提示（同名包升级场景）：上游把 navidrome.db 直接
+    # 放在 /var/lib/navidrome/ 根目录，本包使用 data/ 子目录；检测到旧库时
+    # 只提示不搬动（避免覆盖/误删），用户在 env 里指回旧目录即可无缝接管
+    if [ -f "$DATA_DIR/navidrome.db" ] && [ ! -f "$DATA_DIR/data/navidrome.db" ]; then
+      pkg_log postinst "检测到上游 deb 布局的 navidrome.db（$DATA_DIR/navidrome.db）"
+      echo "提示: 检测到上游官方 deb 的数据库 $DATA_DIR/navidrome.db。" >&2
+      echo "      如需接管旧数据: 在 $APP_DIR/navidrome.env 中加入" >&2
+      echo "      ND_DATAFOLDER=$DATA_DIR 后执行 systemctl restart navidrome" >&2
+    fi
+
+    # 6. 系统层注册（幂等；应用中心安装时平台也会做同样的事）
+    install -m 0644 "$APP_DIR/init.d/navidrome.service" \
+      /etc/systemd/system/navidrome.service
+    systemctl daemon-reload
+
+    # 启用（幂等，升级路径 prerm 只停不拆故必须重 enable）并（重）启动
+    systemctl enable navidrome.service > /dev/null 2>&1 || true
+    if [ -n "${2:-}" ]; then
+      systemctl restart navidrome.service 2>/dev/null || true
+    else
+      systemctl start navidrome.service 2>/dev/null || true
+    fi
+
+    # 7. nginx 路由（TOS 平台会加载 nginx/<appid>.conf，此处在系统 nginx 兜底注册）
+    # 注意：裸 location 仅在 server 上下文合法（TOS 的 conf.d 即 include 在 server 层）；
+    # 写入后立即 nginx -t 校验，失败则回滚，绝不留下导致 nginx 无法 reload 的配置
+    if command -v nginx > /dev/null 2>&1 && [ -d /etc/nginx/conf.d ]; then
+      install -m 0644 "$APP_DIR/nginx/navidrome.conf" \
+        /etc/nginx/conf.d/navidrome.conf
+      if nginx -t > /dev/null 2>&1; then
+        nginx -s reload > /dev/null 2>&1 || true
+      else
+        rm -f /etc/nginx/conf.d/navidrome.conf
+        echo "提示: 本机 nginx 的 conf.d 不在 server 上下文，已跳过自动注册 /navidrome/。" >&2
+        echo "      请把 $APP_DIR/nginx/navidrome.conf 的 location 段手工加入对应 server 块。" >&2
+      fi
+    fi
+
+    # 8. 健康检查（只在 failed 时告警并给出排查命令）
+    sleep 2
+    if systemctl is-failed --quiet navidrome.service; then
+      echo "警告: navidrome 启动失败，排查: journalctl -u navidrome -n 50 --no-pager" >&2
+    elif systemctl is-active --quiet navidrome.service; then
+      pkg_log postinst "navidrome.service active"
+    fi
+
+    # 9. ffmpeg 提示（转码功能依赖；缺失不影响直连播放，避免硬依赖阻塞安装）
+    if ! command -v ffmpeg > /dev/null 2>&1; then
+      echo "提示: 未检测到 ffmpeg，音频格式转码不可用（浏览器不支持的编码将无法播放）。" >&2
+      echo "      如需转码: apt install ffmpeg && systemctl restart navidrome" >&2
+    fi
+
+    pkg_log postinst done "@VERSION@"
+    echo ""
+    if [ -n "${2:-}" ]; then
+      echo "Navidrome @VERSION@ 已完成升级（自 $2）。"
+    else
+      echo "Navidrome @VERSION@ 已安装。"
+    fi
+    echo "  打开界面 : TOS 桌面 → Navidrome Music Server 图标（新标签页打开 http://<NAS的IP>:8181/navidrome/）"
+    echo "  首次使用 : 打开网页 → 创建管理员账号（首位访问者即为管理员）"
+    echo "  导入音乐 : 放入 /var/lib/navidrome/music，或编辑 $APP_DIR/navidrome.env"
+    echo "             的 ND_MUSICFOLDER= 指向共享文件夹后 systemctl restart navidrome"
+    echo "  端口说明 : 仅监听 127.0.0.1:8453，不对外暴露端口（经 TOS nginx 路由访问）"
+    echo ""
+    ;;
+esac
+
+exit 0

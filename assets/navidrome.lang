@@ -1,0 +1,111 @@
+[en-us]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome is a self-hosted music server and streamer. Point it at your music folder (including TOS shared folders) and stream your collection to any browser or Subsonic-compatible app, with playlists, favorites, play counts, smart playlists and multi-user support. Opens in a new browser tab from the TOS desktop. The backend listens on loopback only: no extra port is exposed, all traffic goes through the TOS web server route. Runs as a dedicated unprivileged user in a hardened systemd sandbox."
+release_note = "Bundles the official Navidrome 0.64.0 binary (static Go build, zero runtime dependencies). After install, open the app and create the admin account on first visit. Put your music in /var/lib/navidrome/music, or edit /usr/local/navidrome/navidrome.env (ND_MUSICFOLDER=...) to point at any folder on the NAS (e.g. a shared folder), then restart the service. Audio format transcoding requires ffmpeg (installed automatically when available)."
+important    = "The web UI has no default password: the first visitor creates the admin account, so complete the setup right after installing. Databases, caches and the default music folder are stored in /var/lib/navidrome; 'apt remove' keeps them, 'apt purge' deletes them (including your music files in the default folder)."
+
+[zh-cn]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome 是一款自托管的音乐服务器与串流软件。把它指向你的音乐目录（包括 TOS 共享文件夹），即可在任何浏览器或兼容 Subsonic 的客户端上串流你的音乐收藏，支持播放列表、收藏、播放统计、智能播放列表和多用户。应用从 TOS 桌面以新标签页方式打开；后端仅监听本机回环、不对外多开任何端口，全部流量经 TOS 网页服务的标准路由转发，安全省心。服务以专用非特权用户运行并施加 systemd 沙箱加固。"
+release_note = "内置 Navidrome 0.64.0 官方二进制（Go 静态编译，零运行时依赖）。安装后打开应用，首次访问时创建管理员账号。把音乐放入 /var/lib/navidrome/music，或编辑 /usr/local/navidrome/navidrome.env 的 ND_MUSICFOLDER 指向 NAS 上任意目录（如共享文件夹）后重启服务即可。音频格式转码需要 ffmpeg（仓库可用时自动安装）。"
+important    = "网页界面没有默认密码：首位访问者将创建管理员账号，请在安装后立即完成初始化。数据库、缓存与默认音乐目录保存在 /var/lib/navidrome；apt remove 卸载时保留数据，apt purge 会彻底删除（包括默认音乐目录中的音乐文件）。"
+
+[zh-hk]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome 是一款自架設的音樂伺服器與串流軟體。把它指向你的音樂目錄（包括 TOS 共享資料夾），即可在任何瀏覽器或相容 Subsonic 的用戶端上串流你的音樂收藏，支援播放清單、收藏、播放統計、智慧播放清單和多使用者。應用從 TOS 桌面以新分頁方式開啟；後端僅監聽本機回環、不對外多開任何連接埠，全部流量經 TOS 網頁服務的標準路由轉發，安全省心。服務以專用非特權使用者執行並施加 systemd 沙箱強化。"
+release_note = "內建 Navidrome 0.64.0 官方二進位（Go 靜態編譯，零執行時相依）。安裝後開啟應用，首次存取時建立管理員帳號。把音樂放入 /var/lib/navidrome/music，或編輯 /usr/local/navidrome/navidrome.env 的 ND_MUSICFOLDER 指向 NAS 上任意目錄（如共享資料夾）後重新啟動服務即可。音訊格式轉碼需要 ffmpeg（倉庫可用時自動安裝）。"
+important    = "網頁介面沒有預設密碼：首位訪客將建立管理員帳號，請在安裝後立即完成初始化。資料庫、快取與預設音樂目錄保存在 /var/lib/navidrome；apt remove 移除時保留資料，apt purge 會徹底刪除（包括預設音樂目錄中的音樂檔案）。"
+
+[fr-fr]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome est un serveur de musique auto-hébergé. Pointez-le vers votre dossier de musique (y compris les dossiers partagés TOS) et diffusez votre collection vers n'importe quel navigateur ou application compatible Subsonic, avec playlists, favoris, compteurs d'écoute, playlists intelligentes et support multi-utilisateurs. L'application s'ouvre dans un nouvel onglet depuis le bureau TOS. Le backend n'écoute que sur loopback : aucun port supplémentaire n'est exposé, tout le trafic passe par la route standard du serveur web TOS. S'exécute sous un utilisateur dédié non privilégié dans un bac à sable systemd renforcé."
+release_note = "Embarque le binaire officiel Navidrome 0.64.0 (compilation Go statique, zéro dépendance). Après l'installation, ouvrez l'application et créez le compte administrateur à la première visite. Placez votre musique dans /var/lib/navidrome/music, ou éditez ND_MUSICFOLDER dans /usr/local/navidrome/navidrome.env pour pointer vers n'importe quel dossier du NAS, puis redémarrez le service. Le transcodage audio nécessite ffmpeg (installé automatiquement si disponible)."
+important    = "L'interface web n'a pas de mot de passe par défaut : le premier visiteur crée le compte administrateur, terminez la configuration dès l'installation. Bases de données, caches et dossier musical par défaut sont stockés dans /var/lib/navidrome ; « apt remove » les conserve, « apt purge » les supprime (y compris vos fichiers musicaux du dossier par défaut)."
+
+[de-de]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome ist ein selbst gehosteter Musikserver und Streamer. Richten Sie ihn auf Ihren Musikordner (auch TOS-Freigabeordner) und streamen Sie Ihre Sammlung zu jedem Browser oder Subsonic-kompatiblen Gerät – mit Wiedergabelisten, Favoriten, Abspielstatistiken, intelligenten Playlists und Mehrbenutzer-Unterstützung. Öffnet sich über das TOS-Desktop-Symbol in einem neuen Browser-Tab. Das Backend lauscht nur auf Loopback: kein zusätzlicher offener Port, der gesamte Datenverkehr läuft über die Standardroute des TOS-Webservers. Läuft als dedizierter unprivilegierter Benutzer in einer gehärteten systemd-Sandbox."
+release_note = "Enthält das offizielle Navidrome-0.64.0-Binary (statisch kompiliertes Go, keine Laufzeitabhängigkeiten). Öffnen Sie nach der Installation die App und erstellen Sie beim ersten Besuch das Admin-Konto. Legen Sie Ihre Musik in /var/lib/navidrome/music ab oder tragen Sie in /usr/local/navidrome/navidrome.env ND_MUSICFOLDER=... ein, um auf einen beliebigen NAS-Ordner zu zeigen, und starten Sie den Dienst neu. Audio-Transcoding erfordert ffmpeg (wird automatisch installiert, wenn verfügbar)."
+important    = "Die Weboberfläche hat kein Standardpasswort: Der erste Besucher erstellt das Admin-Konto – schließen Sie die Einrichtung direkt nach der Installation ab. Datenbanken, Caches und der Standard-Musikordner liegen in /var/lib/navidrome; „apt remove“ behält sie, „apt purge“ löscht sie (einschließlich Ihrer Musikdateien im Standardordner)."
+
+[it-it]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome è un server musicale e streamer self-hosted. Punta alla tua cartella musicale (incluse le cartelle condivise TOS) e trasmetti la tua collezione a qualsiasi browser o app compatibile Subsonic, con playlist, preferiti, contatori di riproduzione, playlist intelligenti e supporto multiutente. Si apre in una nuova scheda del browser dal desktop TOS. Il backend resta in ascolto solo su loopback: nessuna porta aggiuntiva esposta, tutto il traffico passa dalla route standard del server web TOS. Esegue con un utente dedicato non privilegiato in una sandbox systemd rafforzata."
+release_note = "Include il binario ufficiale Navidrome 0.64.0 (build Go statica, zero dipendenze runtime). Dopo l'installazione, apri l'app e crea l'account amministratore al primo accesso. Metti la musica in /var/lib/navidrome/music, oppure modifica ND_MUSICFOLDER in /usr/local/navidrome/navidrome.env per puntare a una qualsiasi cartella del NAS, poi riavvia il servizio. Il transcodifica audio richiede ffmpeg (installato automaticamente se disponibile)."
+important    = "L'interfaccia web non ha password predefinita: il primo visitatore crea l'account amministratore, completa la configurazione subito dopo l'installazione. Database, cache e cartella musica predefinita sono in /var/lib/navidrome; 'apt remove' li conserva, 'apt purge' li elimina (inclusi i file musicali nella cartella predefinita)."
+
+[es-es]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome es un servidor de música autoalojado y streamer. Apúntalo a tu carpeta de música (incluidas las carpetas compartidas de TOS) y transmite tu colección a cualquier navegador o aplicación compatible con Subsonic, con listas de reproducción, favoritos, contadores de reproducción, listas inteligentes y soporte multiusuario. Se abre en una nueva pestaña del navegador desde el escritorio TOS. El backend escucha solo en loopback: no se expone ningún puerto adicional, todo el tráfico pasa por la ruta estándar del servidor web TOS. Se ejecuta con un usuario dedicado sin privilegios en un sandbox systemd reforzado."
+release_note = "Incluye el binario oficial de Navidrome 0.64.0 (compilación Go estática, cero dependencias en tiempo de ejecución). Tras la instalación, abre la aplicación y crea la cuenta de administrador en la primera visita. Pon tu música en /var/lib/navidrome/music, o edita ND_MUSICFOLDER en /usr/local/navidrome/navidrome.env para apuntar a cualquier carpeta del NAS y reinicia el servicio. La transcodificación de audio requiere ffmpeg (se instala automáticamente si está disponible)."
+important    = "La interfaz web no tiene contraseña predeterminada: el primer visitante crea la cuenta de administrador, completa la configuración justo después de instalar. Bases de datos, cachés y la carpeta de música predeterminada se guardan en /var/lib/navidrome; 'apt remove' los conserva, 'apt purge' los elimina (incluidos tus archivos de música en la carpeta predeterminada)."
+
+[hu-hu]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "A Navidrome egy saját üzemeltetésű zenei szerver és streamer. Irányítsa a zenemappájára (a TOS megosztott mappákat is beleértve), és streamelje gyűjteményét bármely böngészőbe vagy Subsonic-kompatibilis alkalmazásba – lejátszási listákkal, kedvencekkel, lejátszási statisztikákkal, okos lejátszási listákkal és többfelhasználós támogatással. A TOS asztalról új böngészőlapban nyílik meg. A háttérszolgáltatás csak loopbacken hallgat: nincs további nyitott port, minden forgalom a TOS webkiszolgáló szabványos útvonalán megy át. Dedikált, nem privilegizált felhasználóként fut, megerősített systemd sandboxban."
+release_note = "A hivatalos Navidrome 0.64.0 binárist tartalmazza (statikus Go build, nulla futásidejű függőség). Telepítés után nyissa meg az alkalmazást, és az első látogatáskor hozza létre az adminisztrátori fiókot. Tegye zenéit a /var/lib/navidrome/music mappába, vagy állítsa be az ND_MUSICFOLDER értéket a /usr/local/navidrome/navidrome.env fájlban a NAS bármely mappájára, majd indítsa újra a szolgáltatást. Az átkódoláshoz ffmpeg szükséges (automatikusan települ, ha elérhető)."
+important    = "A webes felületnek nincs alapértelmezett jelszava: az első látogató hozza létre az adminisztrátori fiókot, ezért a telepítés után azonnal fejezze be a beállítást. Az adatbázisok, gyorsítótárak és az alapértelmezett zenemappa a /var/lib/navidrome könyvtárban vannak; az „apt remove” megtartja, az „apt purge” törli azokat (az alapértelmezett mappában lévő zenefájlokkal együtt)."
+
+[ja-jp]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome はセルフホスト型の音楽サーバー＆ストリーマーです。音楽フォルダー（TOS の共有フォルダーを含む）を指定するだけで、プレイリスト、お気に入り、再生回数、スマートプレイリスト、マルチユーザー対応機能付きで、任意のブラウザーや Subsonic 互換アプリからコレクションをストリーミングできます。TOS デスクトップから新しいブラウザータブで開きます。バックエンドはループバックのみで待ち受け、余分なポートは一切開放せず、すべての通信は TOS ウェブサーバーの標準ルートを経由します。専用の非特権ユーザーとして、強化された systemd サンドボックス内で動作します。"
+release_note = "公式 Navidrome 0.64.0 バイナリ同梱（Go 静的ビルド、ランタイム依存なし）。インストール後、アプリを開いて初回アクセス時に管理者アカウントを作成してください。音楽は /var/lib/navidrome/music に入れるか、/usr/local/navidrome/navidrome.env の ND_MUSICFOLDER で NAS 上の任意のフォルダー（共有フォルダーなど）を指定してサービスを再起動してください。音声フォーマットのトランスコードには ffmpeg が必要です（利用可能な場合は自動インストール）。"
+important    = "ウェブ UI にデフォルトのパスワードはありません：最初の訪問者が管理者アカウントを作成するため、インストール直後にセットアップを完了させてください。データベース・キャッシュ・デフォルトの音楽フォルダーは /var/lib/navidrome に保存されます。「apt remove」では保持され、「apt purge」では完全に削除されます（デフォルトフォルダー内の音楽ファイルも含む）。"
+
+[ko-kr]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome는 자체 호스팅 음악 서버 및 스트리머입니다. 음악 폴더(TOS 공유 폴더 포함)를 지정하면 재생 목록, 즐겨찾기, 재생 횟수, 스마트 재생 목록, 다중 사용자 지원 기능과 함께 어떤 브라우저나 Subsonic 호환 앱에서도 컬렉션을 스트리밍할 수 있습니다. TOS 데스크톱에서 새 브라우저 탭으로 열립니다. 백엔드는 루프백만 수신하며 추가 포트를 노출하지 않고, 모든 트래픽은 TOS 웹 서버의 표준 경로를 통과합니다. 전용 비특권 사용자로 강화된 systemd 샌드박스에서 실행됩니다."
+release_note = "공식 Navidrome 0.64.0 바이너리 포함(정적 Go 빌드, 런타임 종속성 없음). 설치 후 앱을 열고 첫 방문 시 관리자 계정을 만드세요. 음악은 /var/lib/navidrome/music에 넣거나, /usr/local/navidrome/navidrome.env의 ND_MUSICFOLDER로 NAS의 아무 폴더(공유 폴더 등)를 지정한 후 서비스를 재시작하면 됩니다. 오디오 형식 트랜스코딩에는 ffmpeg가 필요합니다(사용 가능한 경우 자동 설치)."
+important    = "웹 UI에는 기본 비밀번호가 없습니다: 첫 방문자가 관리자 계정을 생성하므로 설치 직후 설정을 완료하세요. 데이터베이스, 캐시, 기본 음악 폴더는 /var/lib/navidrome에 저장됩니다. 'apt remove'는 유지하고, 'apt purge'는 완전히 삭제합니다(기본 폴더의 음악 파일 포함)."
+
+[pl-pl]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome to samodzielnie hostowany serwer i streamer muzyki. Wskaż mu folder z muzyką (w tym udostępniane foldery TOS) i streamuj kolekcję do dowolnej przeglądarki lub aplikacji zgodnej z Subsonic — z playlistami, ulubionymi, licznikami odtworzeń, inteligentnymi playlistami i obsługą wielu użytkowników. Otwiera się w nowej karcie przeglądarki z pulpitu TOS. Backend nasłuchuje wyłącznie na loopback: żaden dodatkowy port nie jest otwarty, cały ruch przechodzi przez standardową trasę serwera WWW TOS. Działa jako dedykowany nieuprzywilejowany użytkownik w wzmocnionej piaskownicy systemd."
+release_note = "Zawiera oficjalny plik binarny Navidrome 0.64.0 (statyczna kompilacja Go, zero zależności środowiskowych). Po instalacji otwórz aplikację i utwórz konto administratora przy pierwszej wizycie. Umieść muzykę w /var/lib/navidrome/music albo ustaw ND_MUSICFOLDER w /usr/local/navidrome/navidrome.env na dowolny folder na NAS-ie i zrestartuj usługę. Transkodowanie audio wymaga ffmpeg (instalowane automatycznie, gdy dostępne)."
+important    = "Interfejs WWW nie ma domyślnego hasła: pierwszy odwiedzający tworzy konto administratora, więc dokończ konfigurację tuż po instalacji. Bazy danych, pamięci podręczne i domyślny folder muzyki znajdują się w /var/lib/navidrome; „apt remove" je zachowuje, „apt purge" usuwa (wraz z plikami muzyki w folderze domyślnym)."
+
+[ru-ru]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome — самостоятельно размещаемый музыкальный сервер и стример. Укажите ему папку с музыкой (включая общие папки TOS) и транслируйте свою коллекцию в любой браузер или Subsonic-совместимое приложение — с плейлистами, избранным, статистикой прослушиваний, умными плейлистами и поддержкой нескольких пользователей. Открывается в новой вкладке браузера с рабочего стола TOS. Серверная часть слушает только loopback: никаких дополнительных открытых портов, весь трафик идёт через стандартный маршрут веб-сервера TOS. Работает от выделенного непривилегированного пользователя в усиленной песочнице systemd."
+release_note = "Включает официальный бинарник Navidrome 0.64.0 (статическая сборка Go, ноль зависимостей времени выполнения). После установки откройте приложение и при первом входе создайте учётную запись администратора. Положите музыку в /var/lib/navidrome/music или укажите ND_MUSICFOLDER в /usr/local/navidrome/navidrome.env на любую папку NAS (например, общую) и перезапустите службу. Перекодировка аудио требует ffmpeg (устанавливается автоматически при наличии)."
+important    = "У веб-интерфейса нет пароля по умолчанию: первый посетитель создаёт учётную запись администратора — завершите настройку сразу после установки. Базы данных, кэши и папка музыки по умолчанию хранятся в /var/lib/navidrome; «apt remove» сохраняет их, «apt purge» удаляет (включая ваши музыкальные файлы в папке по умолчанию)."
+
+[tr-tr]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "Navidrome, kendiniz barındırdığınız bir müzik sunucusu ve yayın (stream) uygulamasıdır. Müzik klasörünüzü (TOS paylaşılan klasörleri dahil) gösterin; koleksiyonunuzu çalma listeleri, favoriler, dinleme sayıları, akıllı listeler ve çok kullanıcılı destekle herhangi bir tarayıcıya veya Subsonic uyumlu uygulamaya yayınlayın. TOS masaüstünden yeni bir tarayıcı sekmesinde açılır. Arka uç yalnızca loopback dinler: ek bir port açılmaz, tüm trafik TOS web sunucusunun standart rotasından geçer. Ayrıcalıksız özel bir kullanıcı olarak güçlendirilmiş systemd korumalı alanda çalışır."
+release_note = "Resmî Navidrome 0.64.0 ikili dosyasını içerir (statik Go derlemesi, sıfır çalışma zamanı bağımlılığı). Kurulumdan sonra uygulamayı açın ve ilk ziyarette yönetici hesabını oluşturun. Müziğinizi /var/lib/navidrome/music klasörüne koyun ya da /usr/local/navidrome/navidrome.env içindeki ND_MUSICFOLDER ile NAS'taki herhangi bir klasörü gösterin ve hizmeti yeniden başlatın. Ses biçimi dönüştürme için ffmpeg gerekir (varsa otomatik kurulur)."
+important    = "Web arayüzünde varsayılan parola yoktur: ilk ziyaretçi yönetici hesabını oluşturur, bu yüzden kurulumdan hemen sonra kurulumu tamamlayın. Veritabanları, önbellekler ve varsayılan müzik klasörü /var/lib/navidrome içinde saklanır; 'apt remove' bunları korur, 'apt purge' tamamen siler (varsayılan klasördeki müzik dosyalarınız dahil)."
+
+[pt-pt]
+name         = "Navidrome Music Server"
+auth         = "Moechz"
+version      = "@@VERSION@@"
+descript     = "O Navidrome é um servidor de música e streamer auto-hospedado. Aponte-o para a sua pasta de música (incluindo pastas partilhadas do TOS) e transmita a sua coleção para qualquer navegador ou aplicação compatível com Subsonic, com listas de reprodução, favoritos, contadores de reprodução, listas inteligentes e suporte multiutilizador. Abre num novo separador do navegador a partir do ambiente de trabalho TOS. O backend escuta apenas em loopback: nenhum porto extra é exposto, todo o tráfego passa pela rota padrão do servidor web TOS. Corre com um utilizador dedicado sem privilégios numa sandbox systemd reforçada."
+release_note = "Inclui o binário oficial do Navidrome 0.64.0 (compilação Go estática, zero dependências de runtime). Após a instalação, abra a aplicação e crie a conta de administrador na primeira visita. Coloque a sua música em /var/lib/navidrome/music, ou edite ND_MUSICFOLDER em /usr/local/navidrome/navidrome.env para apontar para qualquer pasta do NAS e reinicie o serviço. A transcodificação de áudio requer ffmpeg (instalado automaticamente se disponível)."
+important    = "A interface web não tem palavra-passe predefinida: o primeiro visitante cria a conta de administrador, por isso conclua a configuração logo após a instalação. Bases de dados, caches e a pasta de música predefinida são guardadas em /var/lib/navidrome; o 'apt remove' mantém-nas, o 'apt purge' elimina-as (incluindo os seus ficheiros de música na pasta predefinida)."

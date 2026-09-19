@@ -1,0 +1,22 @@
+Package: navidrome
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: @MAINTAINER@
+Installed-Size: @SIZE@
+Depends: systemd
+Recommends: ffmpeg
+Section: sound
+Priority: optional
+Homepage: https://www.navidrome.org
+Description: Navidrome Music Server - your personal streaming service
+ Navidrome is a self-hosted music server and streamer. Point it at your
+ music folder (including TOS shared folders) and stream your collection
+ to any browser or Subsonic-compatible app, with playlists, favorites,
+ play counts, smart playlists and multi-user support.
+ .
+ The web UI opens in a new browser tab via the TOS App Center route
+ /navidrome/. The backend listens on loopback only; no external port is
+ exposed. The first visit walks you through creating the admin account.
+ Music, databases and caches are stored in /var/lib/navidrome.
+ Audio format transcoding requires ffmpeg (recommended, installed
+ automatically when available in the repository).
