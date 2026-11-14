@@ -1,52 +1,94 @@
-# Navidrome for TOS 7
+# navidrome-for-tos
 
-把 [Navidrome](https://github.com/navidrome/navidrome)（自托管音乐服务器/串流）
-打包成 TerraMaster TOS 7 应用中心规范的 deb 包。
+> TerraMaster TOS 7 App Center — **Docker application** package for
+> [Navidrome](https://github.com/navidrome/navidrome).
 
-## 模式
+## What this is
 
-- **WebUI External Open（新标签页）**：桌面图标点击后经 `http://<NAS的IP>:8181/navidrome/`
-  在新标签页打开（`open_path: true`，无 `type` 字段）
-- **全回环**：后端仅监听 `127.0.0.1:8453`，不对外开端口，流量全部经平台 nginx 路由
-- **保留前缀转发**（metube 同款）：`proxy_pass http://127.0.0.1:8453/navidrome/` +
-  二进制 `--baseurl /navidrome` 原生子路径运行，SPA/Subsonic API/分享链接全自洽
-- **双落盘**：`init.d/`、`nginx/` 满足平台注册；同时以 dpkg 实体文件放
-  `/etc/systemd/system/`、`/etc/nginx/conf.d/`，systemd/nginx 直接加载
-- 二进制取自官方 Release（sha256 校验），Go 静态编译零运行时依赖
+A four-file TOS Docker application archive (`navidromedocker.tar.gz`) that installs
+Navidrome on TOS 7 through the App Center:
 
-## 使用
+- `config.ini` — TOS application metadata (`application_type: docker`, id `navidromedocker`)
+- `navidromedocker.lang` — 23-language superset (TOS requires 14)
+- `navidromedocker.svg` — application icon (274 bytes, 2 SVG elements)
+- `docker-compose.yml` — one service, image `deluan/navidrome:0.64.2`
+
+## How it works
+
+| | |
+|---|---|
+| Container image | `deluan/navidrome:0.64.2` (Docker Hub, used unmodified) |
+| Open | `http://<NAS-IP>:8157/` (container port 4533) |
+| Runs as | non-root, `user: "1000:1000"` |
+| Persistent data | `/data` → `/Volume1/DockerAppData/navidromedocker/data`, `/music` → `/Volume1/DockerAppData/navidromedocker/music` |
+| Logs | `docker logs navidromedocker` (stdout/stderr) |
+
+
+
+## Design highlights
+
+- **Non-root.** `user: "1000:1000"`; verified on real hardware (the container reports uid 1000).
+- **Fixed image tag, never `:latest`**, Docker Hub only, no `privileged`, no `network_mode: host`, and no Docker socket, no `cap_add`.
+- **Health check** probing the service on container port 4533.
+- **Deterministic build**: GNU tar with uid/gid 0 and zeroed timestamps, gzip without a timestamp, plus the review-standards self-check above.
+
+## Runtime file manifest
+
+Everything the application writes on the NAS lives inside its own data
+directory; the container-internal `/tmp` is discarded with the container. The
+table lists what is created and how it behaves. Nothing else is written.
+
+| Path | Purpose | Created when | Growth bound | Lifecycle |
+|---|---|---|---|---|
+| `/Volume1/DockerAppData/navidromedocker/data` | Navidrome application data (everything the container writes outside /tmp) | on first start / on demand | bounded by your own data | persistent; kept on uninstall unless you ask to delete it |
+| `/Volume1/DockerAppData/navidromedocker/music` | Navidrome application data (everything the container writes outside /tmp) | on first start / on demand | bounded by your own data | persistent; kept on uninstall unless you ask to delete it |
+
+## Build
 
 ```bash
-./build.sh            # fetch → stage → verify → deb 一条龙
-make check            # 语法与资产静态自检
-./build.sh info       # 查看当前配置
+scripts/build.sh                  # -> out/navidromedocker.tar.gz + .sha256
+scripts/build.sh 0.64.2-2   # packaging iteration bump
+scripts/build.sh 0.64.2-1 aarch64
 ```
 
-产物（`out/`）：
+The build stages the four files, substitutes the version/platform placeholders,
+removes CRLF/BOM/AppleDouble, then runs
+`tools/verify.py`, a review-standards self-check (archive layout, JSON validity,
+required fields, 14+ language coverage, version consistency, Docker-Hub-only
+images, fixed tag, reserved/recommended host ports, non-root user, per-service
+healthcheck/TZ/restart, data path below the application data root, never the
+`/Volume*` wildcard, comment-free sequence blocks, `x-app-meta` position, no
+literal secrets and the SVG size/element limits).
 
-- `navidrome_<版本>_<arch>.deb` — 本地安装/测试用
-- `navidrome_<platform>.deb` + `.sha256` — 上架 Release 资产（Release tag = `v<完整版本>`）
+## Local verification
 
-改配置：编辑 `config.env`（上游版本/迭代号/架构/维护者），重新 `./build.sh`。
-
-## 升级上游版本
-
-1. `config.env` 里改 `NAVIDROME_VERSION`
-2. `./build.sh distclean && ./build.sh`
-3. `.lang` 与 `changelog` 中的版本号文案同步更新
-4. `PKG_RELEASE` 视情况从 `-1` 重新计数
-
-## 目录
-
-```
-config.env   打包配置（版本/架构/维护者）
-build.sh     四阶段构建（fetch/stage/verify/deb）
-makedeb.sh   无 dpkg 依赖的极简 deb 打包器（ar + Python tarfile）
-scripts/     资产静态自检
-assets/      config.ini / control / lang / 图标 / nginx / systemd / 生命周期脚本 / webui 占位页
+```bash
+./TOSAppSelfTestingTool -c out/navidromedocker.tar.gz   # official spec check
+bash test/install-and-verify.sh                  # on-device E2E (needs root)
 ```
 
-## 真机验证
+> Docker applications cannot be side-loaded through the App Center's manual
+> install page (it accepts `.deb` only); the official self-testing tool's `-i`
+> mode or `docker compose` are the only ways to install one for testing.
 
-见 `~/Documents/projects/TOS-DEB-PACKAGING-GUIDE.md` 第五节清单
-（TOS web 端口 8181；测试机 `ssh tnas-57`）。
+## Store submission checklist
+
+1. Public GitHub repo (code + README only).
+2. Release **tag `v0.64.2-1`**, assets `navidromedocker.tar.gz` +
+   `navidromedocker.tar.gz.sha256` (Docker asset naming: `<app_id>.tar.gz`, **no
+   platform suffix**).
+3. Developer platform → Add Application: ID `navidromedocker`, package type Docker,
+   repository URL, architecture `x86_64`.
+4. Version Management → Add Version `0.64.2-1` → automated validation → review.
+
+## License / branding
+
+Navidrome is distributed by its upstream authors under **GPL-3.0**. The container image is the official image from Docker Hub (`deluan/navidrome:0.64.2`) and is used unmodified; no upstream source code is redistributed here. This packaging is an independent community submission by Moechz and is not affiliated with the upstream project or TerraMaster.
+
+## Limitations
+
+- The application runs inside a container; data lives in the application data directory (`/Volume1/DockerAppData/navidromedocker/`) as described above.
+
+---
+
+Packaged for TOS 7 by Moechz. Upstream image used unmodified from Docker Hub.
