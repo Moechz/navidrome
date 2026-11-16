@@ -79,7 +79,7 @@
   "github_repo": "navidrome",
   "upstream_version": "0.64.2",
   "release_tag_prefix": "v",
-  "version": "0.64.2-2",
+  "version": "0.64.2-3",
   "help": "https://github.com/Moechz/navidrome/issues",
   "official": "https://github.com/navidrome/navidrome",
   "license": "GPL-3.0",
