@@ -53,6 +53,15 @@ mkdir -p "$STAGE" "$OUT"
 for f in config.ini "$APPID.lang" "$APPID.svg" docker-compose.yml; do
   cp "$SRC/$f" "$STAGE/$f"
 done
+# F22: when config.ini declares an access path, the package must also ship the
+# TOS front-end bundle under the fixed name webui.bz2 (a bzip2-compressed tar
+# holding index.html, which forwards the browser to the published port).
+# Optional in the official four-file spec, required by the App Center review, so
+# it is staged whenever src/webui.bz2 exists and verify.py then insists on it.
+if [ -f "$SRC/webui.bz2" ]; then
+  cp "$SRC/webui.bz2" "$STAGE/webui.bz2"
+  echo "   staged webui.bz2 ($(wc -c < "$SRC/webui.bz2" | tr -d ' ') bytes)"
+fi
 
 python3 - "$SRC" "$STAGE" "$VERSION" "$PLATFORM" "$APPID" <<'PY'
 import pathlib, sys
@@ -86,8 +95,11 @@ find "$STAGE" \( -name '._*' -o -name '.DS_Store' \) -delete
 xattr -rc "$STAGE" 2>/dev/null || true
 python3 - "$STAGE" <<'PY'
 import sys, pathlib
+# webui.bz2 is a *binary* bzip2 archive: a byte-level CRLF/BOM "cleanup" would
+# corrupt it (a literal b"\r\n" inside the compressed stream would be rewritten).
+BINARY = {"webui.bz2"}
 for p in pathlib.Path(sys.argv[1]).rglob("*"):
-    if p.is_file():
+    if p.is_file() and p.name not in BINARY:
         b = p.read_bytes()
         if b.startswith(b"\xef\xbb\xbf"):
             b = b[3:]

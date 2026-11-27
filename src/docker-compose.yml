@@ -3,18 +3,44 @@
 # ===========================================================================
 # Upstream image : deluan/navidrome:0.64.2 (Docker Hub, used unmodified)
 #                  -> https://github.com/navidrome/navidrome
+#                  OCI index sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265
+#                  ae4701ddddbcbe2a44ee52, linux/amd64 + linux/arm64, built
+#                  2026-09-24 for upstream release v0.64.2 (still the newest
+#                  release - see CHANGELOG, finding T1). The digest is pinned so
+#                  the exact reviewed bits are installed and a later re-tag
+#                  cannot change what the store delivers.
 #
 # Ports   : host 8157 -> container 4533. The host port is in the
 #           TOS-recommended 8000-19999 range and is not one of the reserved
-#           ports (22/80/443/445/3306/5050/5432/6379/8181/8443).
+#           ports (22/80/443/445/3306/5050/5432/6379/8181/8443). The port is
+#           unchanged since the first release (RUNBOOK §12: never republish on a
+#           different port).
 # Volumes : all persistent data lives below
 #           /Volume1/DockerAppData/navidromedocker/. The /Volume* wildcard is
 #           deliberately NOT used: the platform does not expand it.
-# TOS rules honoured: Docker Hub image with a fixed tag (never ':latest'),
-#           container_name == application id, restart: unless-stopped,
-#           non-root user, no privileged mode, no network_mode: host, no
-#           cap_add, explicit TZ, a healthcheck on the only service, and
-#           x-app-meta as the last block.
+# TOS rules honoured: Docker Hub image with a fixed tag and digest (never
+#           ':latest'), container_name == application id,
+#           restart: unless-stopped, non-root user, every Linux capability
+#           dropped, no-new-privileges, no privileged mode, no
+#           network_mode: host, no cap_add, explicit TZ, a healthcheck on the
+#           only service, and x-app-meta as the last block.
+# Least privilege (finding S11): the upstream image declares no USER, so the
+#           package pins user "1000:1000", drops every Linux capability
+#           (cap_drop: ALL) and forbids privilege escalation
+#           (no-new-privileges). Measured inside the running container:
+#           uid 1000, CapEff 0000000000000000, NoNewPrivs 1. The entrypoint
+#           wrapper adds umask 077 and makes /data owner-only (0700) wherever the
+#           mount is owned by uid 1000 (the App Center chowns it at install), so
+#           the database with the users and password hashes is not group/world
+#           readable. Navidrome needs no capability: it listens on 4533,
+#           writes /data and reads /music as an ordinary user.
+# Privacy (findings C6/C8): ND_ENABLEINSIGHTSCOLLECTOR is turned off. Upstream
+#           defaults it to true and would post an install id, version, OS/arch,
+#           memory and library counters to https://insights.navidrome.org/collect
+#           every 24h. With it disabled the only outbound requests are the
+#           metadata lookups a library scan triggers (Deezer, Last.fm,
+#           ListenBrainz) plus the optional login-page background image from
+#           navidrome.org - every endpoint is listed in PRIVACY.md.
 # Escaping: docker compose interpolates ${VAR}/$VAR in compose files, so any
 #           '$' meant for the shell is written '$$'.
 #
@@ -26,16 +52,25 @@
 
 services:
   navidromedocker:
-    image: deluan/navidrome:0.64.2
+    image: deluan/navidrome:0.64.2@sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52
     container_name: navidromedocker
     restart: unless-stopped
     user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        @@ENTRYPOINT_SH@@
     ports:
       - "8157:4533"
     environment:
       TZ: "Asia/Shanghai"
       ND_MUSICFOLDER: "/music"
       ND_DATAFOLDER: "/data"
+      ND_ENABLEINSIGHTSCOLLECTOR: "false"
     volumes:
       - /Volume1/DockerAppData/navidromedocker/data:/data
       - /Volume1/DockerAppData/navidromedocker/music:/music

@@ -1,0 +1,127 @@
+# ===========================================================================
+# Navidrome for TerraMaster TOS 7 (Docker application)
+# ===========================================================================
+# Upstream image : deluan/navidrome:0.64.2 (Docker Hub, used unmodified)
+#                  -> https://github.com/navidrome/navidrome
+#                  OCI index sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265
+#                  ae4701ddddbcbe2a44ee52, linux/amd64 + linux/arm64, built
+#                  2026-09-24 for upstream release v0.64.2 (still the newest
+#                  release - see CHANGELOG, finding T1). The digest is pinned so
+#                  the exact reviewed bits are installed and a later re-tag
+#                  cannot change what the store delivers.
+#
+# Ports   : host 8157 -> container 4533. The host port is in the
+#           TOS-recommended 8000-19999 range and is not one of the reserved
+#           ports (22/80/443/445/3306/5050/5432/6379/8181/8443). The port is
+#           unchanged since the first release (RUNBOOK §12: never republish on a
+#           different port).
+# Volumes : all persistent data lives below
+#           /Volume1/DockerAppData/navidromedocker/. The /Volume* wildcard is
+#           deliberately NOT used: the platform does not expand it.
+# TOS rules honoured: Docker Hub image with a fixed tag and digest (never
+#           ':latest'), container_name == application id,
+#           restart: unless-stopped, non-root user, every Linux capability
+#           dropped, no-new-privileges, no privileged mode, no
+#           network_mode: host, no cap_add, explicit TZ, a healthcheck on the
+#           only service, and x-app-meta as the last block.
+# Least privilege (finding S11): the upstream image declares no USER, so the
+#           package pins user "1000:1000", drops every Linux capability
+#           (cap_drop: ALL) and forbids privilege escalation
+#           (no-new-privileges). Measured inside the running container:
+#           uid 1000, CapEff 0000000000000000, NoNewPrivs 1. The entrypoint
+#           wrapper adds umask 077 and makes /data owner-only (0700) wherever the
+#           mount is owned by uid 1000 (the App Center chowns it at install), so
+#           the database with the users and password hashes is not group/world
+#           readable. Navidrome needs no capability: it listens on 4533,
+#           writes /data and reads /music as an ordinary user.
+# Privacy (findings C6/C8): ND_ENABLEINSIGHTSCOLLECTOR is turned off. Upstream
+#           defaults it to true and would post an install id, version, OS/arch,
+#           memory and library counters to https://insights.navidrome.org/collect
+#           every 24h. With it disabled the only outbound requests are the
+#           metadata lookups a library scan triggers (Deezer, Last.fm,
+#           ListenBrainz) plus the optional login-page background image from
+#           navidrome.org - every endpoint is listed in PRIVACY.md.
+# Escaping: docker compose interpolates ${VAR}/$VAR in compose files, so any
+#           '$' meant for the shell is written '$$'.
+#
+# NOTE for maintainers: never place a comment line directly in front of a
+# "- value" sequence item (ports, volumes, ...). The official
+# TOSAppSelfTestingTool parses the compose file line by line; a comment inside
+# a sequence makes it skip its permission sync, the mounted directories stay
+# root-owned and the non-root container cannot write into them.
+
+services:
+  navidromedocker:
+    image: deluan/navidrome:0.64.2@sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52
+    container_name: navidromedocker
+    restart: unless-stopped
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        #!/bin/sh
+        # ===========================================================================
+        # Entrypoint wrapper for the official Navidrome image (review finding S11).
+        #
+        # The upstream image starts /app/navidrome straight from its ENTRYPOINT, and its
+        # Dockerfile does not set USER, so the container would inherit whatever the
+        # runtime gives it. This package pins uid/gid 1000, drops every capability and
+        # sets no-new-privileges in docker-compose.yml; this script runs once, as uid
+        # 1000, right before the server EXECs, and only tightens what the app writes:
+        #
+        #   1. umask 077 - every file Navidrome creates (SQLite database, WAL/journal,
+        #      logs, image cache, transcoding temp files) is created without group or
+        #      world write access, instead of the image default 0022.
+        #   2. /data holds navidrome.db with the library, the users and their password
+        #      hashes, so the tree is made owner-only: 0700 directories, no group/world
+        #      bits on files.
+        #   3. /music is the user's own library and stays group-readable/traversable, so
+        #      a shared music folder keeps working while nothing becomes world writable.
+        #   4. Every chmod/find failure is ignored on purpose: the platform can hand
+        #      over root-owned mount points, which a non-root process cannot change.
+        #      Navidrome still starts; it just keeps the permissions it was given.
+        #
+        # This script must not contain a literal double dollar sign (the packaging step
+        # uses it as the escape sequence) and is never executed as root.
+        # ===========================================================================
+        set -u
+
+        umask 077
+
+        if [ -d /data ]; then
+            chmod 0700 /data 2>/dev/null || true
+            find /data -xdev -exec chmod go-rwx {} + 2>/dev/null || true
+        fi
+
+        if [ -d /music ]; then
+            chmod 0750 /music 2>/dev/null || true
+        fi
+
+        exec /app/navidrome
+    ports:
+      - "8157:4533"
+    environment:
+      TZ: "Asia/Shanghai"
+      ND_MUSICFOLDER: "/music"
+      ND_DATAFOLDER: "/data"
+      ND_ENABLEINSIGHTSCOLLECTOR: "false"
+    volumes:
+      - /Volume1/DockerAppData/navidromedocker/data:/data
+      - /Volume1/DockerAppData/navidromedocker/music:/music
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4533/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# TOS App Center web metadata (must be the last block of the file):
+# web.port is the published host port above, protocol is http.
+x-app-meta:
+  web:
+    port: 8157
+    protocol: http

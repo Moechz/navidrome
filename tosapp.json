@@ -1,10 +1,13 @@
 {
   "app_id": "navidromedocker",
   "title": "Navidrome",
-  "image": "deluan/navidrome:0.64.2",
+  "image": "deluan/navidrome:0.64.2@sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52",
   "repo_name": "navidrome",
-  "mode": "plain",
+  "github_repo": "navidrome",
+  "mode": "wrapper",
+  "entrypoint_file": "src/entrypoint.sh",
   "container_port": 4533,
+  "host_port": 8157,
   "category": [
     "Web_Services"
   ],
@@ -21,83 +24,48 @@
   "env": {
     "TZ": "Asia/Shanghai",
     "ND_MUSICFOLDER": "/music",
-    "ND_DATAFOLDER": "/data"
+    "ND_DATAFOLDER": "/data",
+    "ND_ENABLEINSIGHTSCOLLECTOR": "false"
   },
   "auth": "Navidrome",
   "upstream_url": "https://github.com/navidrome/navidrome",
-  "upstream_license": "GPL-3.0",
-  "descript": "Navidrome is a self-hosted music server and streamer: point it at your music folder, then listen from the web UI or any Subsonic-compatible app, with playlists, favourites, transcoding and offline caching. This package runs the official Docker Hub image as a non-root container.",
-  "release_note": "1. First release.",
-  "important": "Put your music files into /Volume1/DockerAppData/navidromedocker/music/ (or change the mounted folder), then open the web UI on port 8157 and create the admin account. Data and database live in /Volume1/DockerAppData/navidromedocker/ and survive restarts and updates. The container runs as uid 1000. Needs DockerEngine; configure a registry mirror if Docker Hub is unreachable. Back up the data folder before uninstalling with data removal. Plain HTTP on the LAN.",
-  "probe": {
-    "user_in_image": "nobody",
-    "entrypoint": null,
-    "cmd": [
-      "sh",
-      "start.sh",
-      "prd"
-    ],
-    "exposed_ports": [
-      8080
-    ],
-    "declared_volumes": [],
-    "image_healthcheck": [
-      "CMD-SHELL",
-      "python healthcheck.py"
-    ],
-    "digest": "daya0576/beaverhabits@sha256:6cd7e464207369785c88cfd59f99c6cc44ec57f3a8d90c3439908da42271d69f",
-    "architecture": "x86_64",
-    "platforms": [],
-    "http_client_in_image": "",
-    "trial_run": {
-      "ok": false,
-      "http_code": "",
-      "state": "exited",
-      "paths": [],
-      "host_port": 18000,
-      "log_tail": "21, in connect\n    await_only(connection),\n    ~~~~~~~~~~^^^^^^^^^^^^\n  File \"/opt/pysetup/.venv/lib/python3.14/site-packages/sqlalchemy/util/_concurrency_py3k.py\", line 132, in await_only\n    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/opt/pysetup/.venv/lib/python3.14/site-packages/sqlalchemy/util/_concurrency_py3k.py\", line 196, in greenlet_spawn\n    value = await result\n            ^^^^^^^^^^^^\n  File \"/opt/pysetup/.venv/lib/python3.14/site-packages/aiosqlite/core.py\", line 168, in _connect\n    self._connection = await future\n                       ^^^^^^^^^^^^\n  File \"/opt/pysetup/.venv/lib/python3.14/site-packages/aiosqlite/core.py\", line 63, in _connection_worker_thread\n    result = function()\n  File \"/opt/pysetup/.venv/lib/python3.14/site-packages/aiosqlite/core.py\", line 466, in connector\n    return sqlite3.connect(loc, **kwargs)\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\nsqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open database file\n(Background on this error at: https://sqlalche.me/e/20/e3q8)\n\n[2026-11-10 04:59:36 +0000] [11] [ERROR] Application startup failed. Exiting.\n[2026-11-10 04:59:36 +0000] [11] [INFO] Worker exiting (pid: 11)\n[2026-11-10 04:59:36 +0000] [9] [ERROR] Worker (pid:11) exited with code 3.\n[2026-11-10 04:59:36 +0000] [9] [ERROR] Shutting down: Master\n[2026-11-10 04:59:36 +0000] [9] [ERROR] Reason: Worker failed to boot.",
-      "files_in_mounts": ""
-    },
-    "docker_hub": {},
-    "github": {
-      "owner": "daya0576",
-      "repo": "beaverhabits",
-      "description": "A self-hosted habit tracking app without \"Goals\"",
-      "license": "BSD-3-Clause",
-      "homepage": "https://beaverhabits.com/demo"
-    }
-  },
-  "healthcheck": [
-    "CMD-SHELL",
-    "wget -q -O /dev/null http://127.0.0.1:4533/ping || exit 1"
-  ],
-  "entrypoint_file": "src/entrypoint.sh",
-  "platform": "x86_64",
-  "user": "1000:1000",
+  "upstream_version": "0.64.2",
+  "upstream_license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-or-later",
+  "official": "https://github.com/navidrome/navidrome",
+  "help": "https://github.com/Moechz/navidrome/blob/main/PRIVACY.md",
   "publisher": "Moechz",
   "compose_project": "navidromedocker",
-  "github_repo": "navidrome",
-  "upstream_version": "0.64.2",
   "release_tag_prefix": "v",
   "version": "0.64.2-3",
-  "help": "https://github.com/Moechz/navidrome/issues",
-  "official": "https://github.com/navidrome/navidrome",
-  "license": "GPL-3.0",
-  "docker_socket": false,
-  "group_add": [],
+  "platform": "x86_64",
   "platforms": [
     "x86_64",
     "aarch64"
   ],
+  "user": "1000:1000",
+  "docker_socket": false,
+  "group_add": [],
+  "healthcheck": [
+    "CMD-SHELL",
+    "wget -q -O /dev/null http://127.0.0.1:4533/ping || exit 1"
+  ],
+  "descript": "Navidrome is a self-hosted music server. It indexes the music folder you mount into a library of artists, albums and tracks, then streams it to its web player or to any Subsonic-compatible app on your network. Build playlists, mark favourites, browse by genre, share albums and playlists by link, play internet radio and transcode what browsers cannot play. Users, passwords and the database stay in DockerAppData/navidromedocker. Artist bios and photos come from public metadata services you can switch off.",
+  "important": "First start: open port 8157 and create the admin account. Put music in DockerAppData/navidromedocker/music or change the mount. The container runs as uid 1000, so that folder must be writable by it. Needs DockerEngine, set a registry mirror if Docker Hub is unreachable. Plain HTTP on the LAN, use a TLS reverse proxy before exposing it to the internet. A scan sends artist names to Deezer, Last.fm and ListenBrainz (see PRIVACY.md). Insights telemetry is disabled here.",
+  "release_note": "0.64.2-3: rectified per the App Center rejection notice (C3 C4 C5 C6 C7 C8 C9 F22 S11 T1, plus C2 C10 F11 V7 from the x86_64 notice). C3 C4 C5: complete privacy policy in PRIVACY.md, and help now points at that public page. C6: the upstream insights telemetry is disabled (ND_ENABLEINSIGHTSCOLLECTOR=false) and the declaration now matches what the app really sends. C7: access, correction and deletion rights plus the contact channel are written down. C8: endpoint table for Deezer, Last.fm, ListenBrainz, navidrome.org and the disabled insights collector. C9: the description lists only delivered features and the Chinese texts were rewritten. F22: the package now ships webui.bz2, a front-end page that forwards to port 8157. S11: non-root uid 1000, umask 077, owner-only data directory, cap_drop ALL and no-new-privileges. T1: 0.64.2 is still the newest upstream release, so the image is pinned by digest and the CVE follow-up plan is in CHANGELOG.md. C2: GPL-3.0-or-later verified against upstream. C10: README documents layout, privacy, notices, build, data and uninstall. F11: the data folder and its removal are documented. V7: both packages rebuilt, hashes recorded and the platform file_hash checked after submission.",
   "translations": {
     "zh-cn": {
-      "descript": "习惯打卡与连续天数统计，界面简洁。",
-      "important": "首次使用请打开网页完成初始化。数据保存在 DockerAppData/beaverhabitsdocker，重启和升级不会丢失。容器以 uid 1000 运行，挂载目录需对该用户可读。需要 DockerEngine；Docker Hub 不可达时先配置镜像加速。卸载并删除数据前请备份。局域网内为 HTTP。"
+      "descript": "Navidrome 是运行在 NAS 上的自建音乐服务器。它索引你挂载的音乐目录，建立歌手、专辑与曲目资料库，并把音乐串流给内置网页播放器或局域网内任何兼容 Subsonic 的客户端。你可以建立播放清单、标记喜爱与评分、按类型浏览、用链接分享专辑与播放清单、收听网络电台，并把浏览器无法播放的格式转码。用户、密码与音乐数据库都保存在 NAS 的 DockerAppData/navidromedocker 目录内。歌手简介与照片来自公开元数据服务，可以自行关闭。",
+      "important": "首次使用请打开 8157 端口并建立管理员账号。把音乐放入 DockerAppData/navidromedocker/music，或修改挂载目录。容器以 uid 1000 运行，数据目录需要对该用户可写。需要 DockerEngine，Docker Hub 不可达时请先配置镜像加速。页面是局域网明文 HTTP，暴露到公网前请使用 TLS 反向代理。扫描音乐库时会把歌手名发送给 Deezer、Last.fm 与 ListenBrainz，详见 PRIVACY.md。本包已关闭上游的 insights 遥测。",
+      "release_note": "0.64.2-3：按商店驳回通知整改（C3 C4 C5 C6 C7 C8 C9 F22 S11 T1，以及 x86_64 通知中的 C2 C10 F11 V7）。C3 C4 C5：新增完整隐私政策 PRIVACY.md，help 指向该公开页面。C6：关闭上游默认开启的 insights 遥测（ND_ENABLEINSIGHTSCOLLECTOR=false），声明与实际发送的数据一致。C7：写明访问、更正、删除的权利与联系渠道。C8：新增端点表，列明 Deezer、Last.fm、ListenBrainz、navidrome.org 以及已关闭的 insights 采集器。C9：描述只写真实交付的功能，中文文案重写。F22：包内新增 webui.bz2，跳转到 8157 端口。S11：非 root（uid 1000）、umask 077、数据目录仅属主可读、cap_drop ALL、no-new-privileges。T1：0.64.2 仍是上游最新版本，镜像按摘要固定，跟进计划见 CHANGELOG.md。C2：许可核实为 GPL-3.0-or-later。C10：README 补充仓库结构、隐私、声明、构建、数据与卸载。F11：写明数据目录与卸载删除方式。V7：双架构重新构建并核对平台 file_hash。"
     },
     "zh-hk": {
-      "descript": "习惯打卡与连续天数统计，界面简洁。",
-      "important": "首次使用請開啟網頁完成初始化。資料保存在 DockerAppData/beaverhabitsdocker，重新啟動和升級不會遺失。容器以 uid 1000 運行，掛載目錄需對該使用者可讀。需要 DockerEngine；Docker Hub 不可達時先設定鏡像加速。解除安裝並刪除資料前請備份。區域網路內為 HTTP。"
+      "descript": "Navidrome 是運行在 NAS 上的自建音樂伺服器。它索引你掛載的音樂目錄，建立歌手、專輯與曲目資料庫，並把音樂串流給內建網頁播放器或區域網路內任何相容 Subsonic 的用戶端。你可以建立播放清單、標記喜愛與評分、按類型瀏覽、用連結分享專輯與播放清單、收聽網路電台，並把瀏覽器無法播放的格式轉碼。使用者、密碼與音樂資料庫都保存在 NAS 的 DockerAppData/navidromedocker 目錄內。歌手簡介與照片來自公開中繼資料服務，可以自行關閉。",
+      "important": "首次使用請開啟 8157 連接埠並建立管理員帳號。把音樂放入 DockerAppData/navidromedocker/music，或修改掛載目錄。容器以 uid 1000 執行，資料目錄需要對該使用者可寫。需要 DockerEngine，Docker Hub 不可達時請先設定鏡像加速。頁面是區域網路明文 HTTP，暴露到公網前請使用 TLS 反向代理。掃描音樂庫時會把歌手名傳送給 Deezer、Last.fm 與 ListenBrainz，詳見 PRIVACY.md。本包已關閉上游的 insights 遙測。",
+      "release_note": "0.64.2-3：按商店駁回通知整改（C3 C4 C5 C6 C7 C8 C9 F22 S11 T1，以及 x86_64 通知中的 C2 C10 F11 V7）。C3 C4 C5：新增完整隱私政策 PRIVACY.md，help 指向該公開頁面。C6：關閉上游預設開啟的 insights 遙測（ND_ENABLEINSIGHTSCOLLECTOR=false），宣告與實際傳送的資料一致。C7：寫明存取、更正、刪除的權利與聯絡管道。C8：新增端點表，列明 Deezer、Last.fm、ListenBrainz、navidrome.org 以及已關閉的 insights 收集器。C9：描述只寫真實交付的功能，中文文案重寫。F22：包內新增 webui.bz2，跳轉到 8157 連接埠。S11：非 root（uid 1000）、umask 077、資料目錄僅屬主可讀、cap_drop ALL、no-new-privileges。T1：0.64.2 仍是上游最新版本，映像按摘要固定，跟進計畫見 CHANGELOG.md。C2：授權核實為 GPL-3.0-or-later。C10：README 補充倉庫結構、隱私、聲明、建置、資料與解除安裝。F11：寫明資料目錄與解除安裝刪除方式。V7：雙架構重新建置並核對平台 file_hash。"
     }
   },
-  "host_port": 8157
+  "design_notes": "The official image declares no USER, so the package pins uid/gid 1000 and wraps the start with src/entrypoint.sh (umask 077, owner-only /data, /music 0750) because the upstream binary has no hardening switches of its own. cap_drop ALL and no-new-privileges are added for the same reason. ND_ENABLEINSIGHTSCOLLECTOR=false removes the only undeclared egress the upstream default would produce.",
+  "data_notes": "/Volume1/DockerAppData/navidromedocker/data holds navidrome.db (library database, users, password hashes, play counts), the image cache, the transcoding cache and logs. /Volume1/DockerAppData/navidromedocker/music is the user's own music library, only read by the app. Removing the application with the App Center data option, or deleting that folder after uninstalling, removes everything (finding F11).",
+  "limitations": "Playback is limited to what the NAS can transcode: the image ships ffmpeg and no GPU access, so a large library of high-bitrate files can saturate the CPU. Only port 8157 is published, so Subsonic clients must reach it over the LAN or through the user's own reverse proxy or VPN. No TLS is terminated by this package."
 }

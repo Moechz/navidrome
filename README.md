@@ -1,131 +1,148 @@
-# navidrome-for-tos
+# Navidrome for TerraMaster TOS 7
 
-> TerraMaster TOS 7 App Center — **Docker application** package for
-> [Navidrome](https://github.com/navidrome/navidrome).
+TerraMaster TOS 7 App Center package (Docker application) for
+[Navidrome](https://github.com/navidrome/navidrome) — a self-hosted music server
+that streams your own collection to the web and to Subsonic-compatible clients.
 
-## What this is
+- Application id: `navidromedocker`
+- Version: **0.64.2-3** (upstream 0.64.2)
+- Open: `http://<NAS-IP>:8157/`
+- Help / privacy policy: <https://github.com/Moechz/navidrome/blob/main/PRIVACY.md>
 
-A four-file TOS Docker application archive (`navidromedocker.tar.gz`) that installs
-Navidrome on TOS 7 through the App Center:
+## Repository layout
 
-- `config.ini` — TOS application metadata (`application_type: docker`, id `navidromedocker`)
-- `navidromedocker.lang` — 23-language superset (TOS requires 14)
-- `navidromedocker.svg` — application icon (274 bytes, 2 SVG elements)
-- `docker-compose.yml` — one service, image `deluan/navidrome:0.64.2`
-
-## How it works
-
-| | |
+| Path | Purpose |
 |---|---|
-| Container image | `deluan/navidrome:0.64.2` (Docker Hub, used unmodified) |
-| Open | `http://<NAS-IP>:8157/` (container port 4533) |
-| Runs as | non-root, `user: "1000:1000"` |
-| Persistent data | `/data` → `/Volume1/DockerAppData/navidromedocker/data`, `/music` → `/Volume1/DockerAppData/navidromedocker/music` |
-| Logs | `docker logs navidromedocker` (stdout/stderr) |
+| `tosapp.json` | package spec: image, ports, volumes, environment, descriptions, translations. The single source of truth for the build |
+| `src/config.ini` | TOS App Center metadata (version/platform placeholders are filled in at build time) |
+| `src/navidromedocker.lang` | 23-language text file (TOS requires 14), generated from `tosapp.json` translations |
+| `src/navidromedocker.svg` | application icon |
+| `src/docker-compose.yml` | the compose project: one service, hardened (see below) |
+| `src/entrypoint.sh` | wrapper started before `/app/navidrome`: `umask 077`, owner-only `/data` |
+| `src/webui.bz2` | TOS front-end bundle (tar.bz2 with a root-level `index.html` that forwards to port 8157 — review item F22) |
+| `scripts/build.sh` | build one architecture: stage → verify → pack → sha256 |
+| `scripts/build-dual.sh` | build both architectures and run the official check |
+| `tools/verify.py` | review-standards self-check, run as a hard gate by `build.sh` |
+| `test/install-and-verify.sh` | on-device functional check against a real installation |
+| `test/smoke.sh` | functional smoke test: web UI, admin creation, login, native API, Subsonic API |
+| `PRIVACY.md` | full privacy policy (local data, endpoint table, retention, rights, security) |
+| `NOTICE.md` | third-party notices, licence verification, trademarks |
+| `CHANGELOG.md` | version history, code by code |
 
+## What it does
 
+1. Indexes the folder mounted at `/music`
+   (`/Volume1/DockerAppData/navidromedocker/music`) into a library of artists,
+   albums, tracks, genres and playlists.
+2. Serves its own web player on port 8157, and the Subsonic / Jellyfin APIs so
+   third-party clients on the LAN can stream the same library.
+3. Transcodes formats the browser cannot play (ffmpeg is included in the image).
 
-## Design highlights
+The complete state (database, users, playlists, play counts, caches) lives in
+`/Volume1/DockerAppData/navidromedocker/`.
 
-- **Non-root.** `user: "1000:1000"`; verified on real hardware (the container reports uid 1000).
-- **Fixed image tag, never `:latest`**, Docker Hub only, no `privileged`, no `network_mode: host`, and no Docker socket, no `cap_add`.
-- **Health check** probing the service on container port 4533.
-- **Deterministic build**: GNU tar with uid/gid 0 and zeroed timestamps, gzip without a timestamp, plus the review-standards self-check above.
+## Security and least privilege
 
-## Runtime file manifest
-
-Everything the application writes on the NAS lives inside its own data
-directory; the container-internal `/tmp` is discarded with the container. The
-table lists what is created and how it behaves. Nothing else is written.
-
-| Path | Purpose | Created when | Growth bound | Lifecycle |
-|---|---|---|---|---|
-| `/Volume1/DockerAppData/navidromedocker/data` | Navidrome application data (everything the container writes outside /tmp) | on first start / on demand | bounded by your own data | persistent; kept on uninstall unless you ask to delete it |
-| `/Volume1/DockerAppData/navidromedocker/music` | Navidrome application data (everything the container writes outside /tmp) | on first start / on demand | bounded by your own data | persistent; kept on uninstall unless you ask to delete it |
+| Measure | Value |
+|---|---|
+| User | `user: "1000:1000"` — never root |
+| Capabilities | `cap_drop: [ALL]`, measured `CapEff 0000000000000000` |
+| Privilege escalation | `security_opt: no-new-privileges:true` |
+| File creation | `umask 077` in `src/entrypoint.sh` |
+| Data directory | `/data` tree owner-only (`0700`), `/music` `0750` |
+| Image | pinned by tag **and** digest (`deluan/navidrome:0.64.2@sha256:38dc…`) |
+| Published ports | 8157 only (plain HTTP — put a TLS proxy in front for remote access) |
 
 ## Privacy
 
-This application runs entirely on your NAS. **The developer does not collect, receive or
-have access to any data processed by the application.** No telemetry, no analytics, no
-account.
+The application runs entirely on your NAS: the developer receives no data. One
+endpoint set leaves the NAS, and it is disclosed in full:
 
-| Topic | Detail |
-|---|---|
-| Data processed | Configuration, database, caches, logs and the files you create with the app. |
-| Where it is stored | `/Volume1/DockerAppData/navidromedocker/data` (database, cache, configuration) and `.../music` (your library). |
-| Retention period | Until **you** delete it; logs are rotated or size-limited by the application. |
-| Your rights | Access/export by copying the data location; correct in the app; delete with `apt purge` / “delete data”. |
-| Deletion channel | Remove the data yourself, or email **moechz@163.com** (answered within 30 days). |
-| Security measures | Dedicated unprivileged system user, only the required ports, rebuilt on upstream fixes. |
-| Children | Not directed at children. |
+- **Deezer**, **Last.fm** and **ListenBrainz** metadata lookups triggered by your
+  own library scan (artist names, MusicBrainz ids, and scrobbles only if you link
+  an account yourself),
+- the optional login-page background from `www.navidrome.org`,
+- upstream's **insights telemetry is disabled** in this package
+  (`ND_ENABLEINSIGHTSCOLLECTOR=false`, verifiable at `/api/insights`).
 
-**Full privacy policy:** [PRIVACY.md](PRIVACY.md) — <https://github.com/Moechz/navidrome/blob/main/PRIVACY.md>
+Full detail, the endpoint table, retention periods, your access/correction/
+deletion rights and the contact channel: **[PRIVACY.md](PRIVACY.md)**.
 
-## Third-party services (API disclosure)
+## Notices and licences
 
-The developer operates no server in this path. The app contacts only the services you
-configure. Full table in [PRIVACY.md](PRIVACY.md) §6.
+Navidrome is **GPL-3.0-or-later** (verified against the upstream repository at
+tag `v0.64.2`); the Docker image is the official Docker Hub image used
+unmodified. This packaging is GPL-3.0-or-later as well. Full attribution,
+trademark statement and icon provenance: **[NOTICE.md](NOTICE.md)**.
 
-## Licence and attributions
+## Data, uninstall and residual files
 
-| Component | Licence | Notes |
+| Path | Content | On uninstall |
 |---|---|---|
-| Navidrome | GPL-3.0 | upstream application |
-| This packaging | GPL-3.0 (see `LICENSE`) | TOS metadata, units, scripts, translations, icon |
+| `/Volume1/DockerAppData/navidromedocker/data` | database (users, library, playlists, play counts), artwork cache, transcoding cache, logs | kept unless *Uninstall → delete data* is chosen |
+| `/Volume1/DockerAppData/navidromedocker/music` | your own music files | never touched by the package |
 
-“Navidrome”, “TerraMaster” and “TOS” are trademarks of their respective owners. This is an
-independent community package by Moechz. Full details: [NOTICE.md](NOTICE.md).
-
-## Support
-
-- Email: moechz@163.com
-- Privacy: [PRIVACY.md](PRIVACY.md) · Licence: [NOTICE.md](NOTICE.md)
+Docker packages have no uninstall hook, so removing the application leaves the
+data folder in place on purpose (a reinstall keeps your library). To remove
+everything, uninstall with the data option, or delete
+`/Volume1/DockerAppData/navidromedocker/` afterwards (review item F11).
 
 ## Build
 
 ```bash
-scripts/build.sh                  # -> out/navidromedocker.tar.gz + .sha256
-scripts/build.sh 0.64.2-2   # packaging iteration bump
-scripts/build.sh 0.64.2-1 aarch64
+scripts/build-dual.sh 0.64.2-3     # both architectures + official -c check
+scripts/build.sh 0.64.2-3          # one architecture (x86_64 by default)
+scripts/build.sh 0.64.2-3 aarch64
 ```
 
-The build stages the four files, substitutes the version/platform placeholders,
-removes CRLF/BOM/AppleDouble, then runs
-`tools/verify.py`, a review-standards self-check (archive layout, JSON validity,
-required fields, 14+ language coverage, version consistency, Docker-Hub-only
-images, fixed tag, reserved/recommended host ports, non-root user, per-service
-healthcheck/TZ/restart, data path below the application data root, never the
-`/Volume*` wildcard, comment-free sequence blocks, `x-app-meta` position, no
-literal secrets and the SVG size/element limits).
+`build.sh` stages the five entries (`config.ini`, `<appid>.lang`, `<appid>.svg`,
+`docker-compose.yml`, `webui.bz2`), substitutes the version/platform
+placeholders, embeds `src/entrypoint.sh` into the compose block scalar, strips
+BOM/CRLF (never from the binary `webui.bz2`) and then runs `tools/verify.py` as a
+hard gate: archive layout, `webui.bz2` structure, JSON validity, required fields,
+language coverage, version consistency, Docker-Hub-only images with a fixed tag,
+reserved host ports, non-root user, per-service healthcheck/TZ/restart, data
+paths below the application data root, never the `/Volume*` wildcard, comment-free
+sequence blocks, `x-app-meta` last, no literal secrets, and the SVG rules.
+The `.tar.gz` is deterministic (uid/gid 0, zeroed mtimes, gzip without a
+timestamp) and a `.sha256` is written next to it.
 
-## Local verification
+## Verification
 
 ```bash
-./TOSAppSelfTestingTool -c out/navidromedocker.tar.gz   # official spec check
-bash test/install-and-verify.sh                  # on-device E2E (needs root)
+# official validator (both packages must say "check passed")
+TOSAppSelfTestingTool -c out/navidromedocker_x86_64.tar.gz
+TOSAppSelfTestingTool -c out/navidromedocker_aarch64.tar.gz
+
+# functional smoke test against a running instance
+bash test/smoke.sh http://127.0.0.1:8157
+
+# inspect the front-end bundle shipped in the package
+tar tjvf out/../src/webui.bz2     # -> index.html
 ```
 
-> Docker applications cannot be side-loaded through the App Center's manual
-> install page (it accepts `.deb` only); the official self-testing tool's `-i`
-> mode or `docker compose` are the only ways to install one for testing.
+`test/smoke.sh` proves the delivered functionality, not just that a port answers:
+it creates the first admin, rejects a wrong password, logs in, calls the native
+API with the issued JWT, checks that the insights collector reports
+`"lastRun":"disabled"`, and calls the Subsonic API with a token.
 
-## Store submission checklist
+## Store submission
 
-1. Public GitHub repo (code + README only).
-2. Release **tag `v0.64.2-1`**, assets `navidromedocker.tar.gz` +
-   `navidromedocker.tar.gz.sha256` (Docker asset naming: `<app_id>.tar.gz`, **no
-   platform suffix**).
-3. Developer platform → Add Application: ID `navidromedocker`, package type Docker,
-   repository URL, architecture `x86_64`.
-4. Version Management → Add Version `0.64.2-1` → automated validation → review.
-
-## License / branding
-
-Navidrome is distributed by its upstream authors under **GPL-3.0**. The container image is the official image from Docker Hub (`deluan/navidrome:0.64.2`) and is used unmodified; no upstream source code is redistributed here. This packaging is an independent community submission by Moechz and is not affiliated with the upstream project or TerraMaster.
+Tag `v0.64.2-3` with the two assets `navidromedocker_x86_64.tar.gz` and
+`navidromedocker_aarch64.tar.gz` (plus their `.sha256`). The two App Center
+records (`navidromedocker` on `x86_64` and `aarch64`) are submitted separately;
+the platform `file_hash` must equal the local SHA-256.
 
 ## Limitations
 
-- The application runs inside a container; data lives in the application data directory (`/Volume1/DockerAppData/navidromedocker/`) as described above.
+- No GPU: transcoding is CPU-bound; a library full of high-bitrate files can keep
+  the NAS CPU busy.
+- Only port 8157 is published. Subsonic clients need LAN access, a VPN or your own
+  reverse proxy.
+- The package terminates no TLS. Do not expose port 8157 directly to the internet.
+- Artist biographies and photos depend on third-party metadata services; when
+  they are disabled literally (see `PRIVACY.md` §5) the UI shows local artwork
+  only.
 
 ---
 
